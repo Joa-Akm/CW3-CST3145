@@ -7,7 +7,7 @@
                                 <h2>Order Summary</h2>
                                 <!-- Displaying items in the cart -->
                                 <div class="row">
-                                    <div class="col-md-4 col-sm-6 col-12" v-for="lesson in checkOut()">
+                                    <div class="col-md-4 col-sm-6 col-12" v-for="lesson in cart" :key="lesson.id">
                                         <div class="card my-3">
                                             <!-- Display image of the lesson -->
                                             <div class="card-image">
@@ -26,14 +26,14 @@
                                             <div class="row">
                                               <div class="col-9 col-lg-9 col-md-9 col-sm-9">
                                                 <button class="btn btn-danger"
-                                                v-on:click="removeCartItem(lesson)"><small>Remove</small></button>
+                                                v-on:click="$emit('remove-item-from-cart',lesson)"><small>Remove</small></button>
                                               </div>
                                             </div>
                                           </div>
                                     </div>  
                                 </div>
                                 <!-- Displayed when the cart is empty -->
-                                <div v-if="checkOut() == ''">
+                                <div v-if="cart.length < 1">
                                     <div class="text-center mt-4">
                                         <img src="images/zero.png" alt="" width="160" height="160">
                                         <p class="mt-2"><strong>Cart Empty</strong></p>
@@ -52,7 +52,7 @@
                                             <label for="firstName">Full name</label>
                                             <li class="list-group-item d-flex justify-content-between lh-condensed">
                                                 
-                                                <input type="text" class="form-control" id="firstName" placeholder="" v-model="name" v-on:blur="validateName" value="" required>
+                                                <input type="text" class="form-control" id="firstName" placeholder="" v-model="name"  value="" required>
                                                 <div class="invalid-feedback">
                                                     <span v-if="nameError">{{ nameError }}</span>
                                                 </div>
@@ -60,12 +60,12 @@
                                             <br>
                                             <label for="lastName">Phone Number</label>
                                             <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                            <input type="number" class="form-control" id="lastName" v-model="phone" v-on:blur="validatePhone" placeholder="" value="" required>
+                                            <input type="number" class="form-control" id="lastName" v-model="phone"  placeholder="" value="" required>
                                             </li>
                                         </ul>
                                         <hr class="mb-4">
-                                        <button v-if="!isValid" class="btn btn-primary btn-lg btn-block"disabled type="submit">Continue to checkout</button>
-                                        <button v-else class="btn btn-primary btn-lg btn-block" v-on:click="submitForm" type="submit">Continue to checkout</button>
+                                        <button v-if="!isValid" class="btn btn-primary btn-lg btn-block" disabled type="submit">Continue to checkout</button>
+                                        <button v-else class="btn btn-primary btn-lg btn-block" v-on:click="submitForm(name, phone)" type="submit">Continue to checkout</button>
                                 </div>
                             </div>
                         </div>
@@ -104,7 +104,24 @@
 export default {
   name: 'checkout-component',
   props: {
-    
+    cart: {type: Array, required: true},
+    submitForm: {type: Function, required: true}
+  },
+  data(){
+    return {
+      name: '',
+      phone: '',
+      nameError: '',
+      phoneError: '',
+    }
+  },
+  methods: {
+
+  },
+  computed: {
+    isValid() {
+      return this.name.trim() !== ''
+    }
   }
 }
 </script>

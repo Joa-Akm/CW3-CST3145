@@ -8,7 +8,7 @@
                     <!-- Sort By and Sort Order -->
                     <div class="col-md-4 col-sm-12 col-12">
                         <div id="search_parent">
-                            <input type="text" @input="customSearch" id="search1" placeholder="Search here..." v-model="searchInput" />
+                            <input type="text"  @input="customSearch($event.target.value)" id="search1" placeholder="Search here..." />
                         </div>
                     </div>
                  </div>
@@ -18,7 +18,7 @@
                     <div class="col-lg-3">
                         <div class="row">
                             <div class="col-sm-6 col-lg-6 col-md-6 col-6">
-                                  <select name="sort" @change="$emit('update:sortOrder',event.target.value)">
+                                  <select name="sort" @change="$emit('update:sortOrder',$event.target.value)">
                                     <option>--Sort By--</option>
                                     <option value="title">Title</option>
                                     <option value="price">Price</option>
@@ -28,10 +28,10 @@
                             </div>
                             <div class="col-sm-6 col-lg-6 col-md-6 col-6">
                           <div class="form-check">
-                            <label><input type="radio" @change="$emit('update:sortOrder',event.target.value)" value="Ascending" id="ascending"> Ascending</label>
+                            <label><input type="radio" @input="$emit('update:sortBy',$event.target.value)" value="Ascending" id="ascending"> Ascending</label>
                           </div>
                           <div class="form-check">
-                            <label><input type="radio" @change="$emit('update:sortOrder',event.target.value)" value="Descending" id="descending"> Descending</label>
+                            <label><input type="radio" @input="$emit('update:sortBy',$event.target.value)" value="Descending" id="descending"> Descending</label>
                           </div>
                             </div>
                         </div>
@@ -40,7 +40,7 @@
                     <!-- Lesson Listings -->
                     <div class="col-lg-9">
                         <div class="row wrapper">                   
-                            <div class="col-lg-4 col-md-6 col-sm-6 col-12 box" v-for="lesson in filterSessions()">
+                            <div class="col-lg-4 col-md-6 col-sm-6 col-12 box" v-for="lesson in lessons" :key="lesson._id">
                                <div class="card my-3 product">
                                   <div class="card-image">
                                    <div class="wrap">
@@ -82,8 +82,15 @@
 <script>
 export default {
   name: 'lesson-component',
+  data(){
+    return {
+      sitename:'Lessons Activities'
+    }
+  },
   props:
     {
+      canAddToCart: {type: Function, required: true},
+      customSearch: {type: Function, required: true},
       lessons: {type: Array, required: true}
     }
 

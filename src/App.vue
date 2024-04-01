@@ -30,11 +30,11 @@
          </header>
          <div class="container-fluid mt-4">
             <div v-if="showCourses">
-                <Lesson />
+                <Lesson v-model:sortOrder="sortOrder" v-model:sortBy="filterType"  :custom-search="customSearch" :lessons="lessons" v-on:add-to-cart="addToCart" :can-add-to-cart="canAddToCart" :cart-item-count="cartItemCount"/>
             </div>
             <!-- Checkout Section -->
             <div v-else>
-                <Checkout />
+                <Checkout :submit-form="submitForm" :cart="cart" v-on:remove-item-from-cart="removeCartItem" />
             </div>     
           </div>
 </template>
@@ -48,17 +48,9 @@ export default {
     Checkout,
     Lesson
   },
-  // Fetching data from server on component creation
-  created:()=>{
-    fetch(`http://localhost:3000/collection/lessons`).then(res => res.json())
-        .then(res => {
-          this.lessons = res
-        })
-  },
   // Vue.js Data
   data(){
     return {
-    sitename:'Lessons Activities',
     lessons: [],  // Array to hold fetched data
     showCourses: true,
     cart: [],   // Array to hold cart items
@@ -67,9 +59,14 @@ export default {
     sortOrder: 'Ascending',
     searchInput: '',
     filterType:'--Sort By--',
-    nameError: '',
-    phoneError: '',
   }
+  },
+  // Fetching data from server on component creation
+  created(){
+    fetch(`http://localhost:3000/collection/lessons`).then(res => res.json())
+        .then(res => {
+          this.lessons = res
+        })
   },
   // Vue.js Methods
   methods: {
@@ -84,8 +81,8 @@ export default {
       return lessons.availableSpaces > this.cartCount(lessons.id);
     },
     removeCartItem(cart_item) {
-      for (let i = 0; i < this.data.length; i++) {
-        const cuse = this.data[i];
+      for (let i = 0; i < this.lessons.length; i++) {
+        const cuse = this.lessons[i];
 
         if (cart_item.lessons.id == cuse.id) {
           cuse.availableSpaces++
@@ -118,26 +115,8 @@ export default {
     showCheckout() {
       this.showCourses = this.showCourses ? false : true;
     },
-    checkOut() {
-      let show = this.cart
-      return show
-    },
-    validateName() {
-      if (this.name.trim() === '') {
-        this.nameError = 'Name is required'
-      } else {
-        this.nameError = ''
-      }
-    },
-    validatePhone() {
-      const phoneRegex = /^[0-9]{10}$/
-      if (!phoneRegex.test(this.phone.trim())) {
-        this.phoneError = 'Phone number must be 10 digits'
-      } else {
-        this.phoneError = ''
-      }
-    },
-    submitForm(){
+
+    submitForm(name, phone){
       alert('Request submitted');
       let data = {}
       for (let i = 0; i < this.cart.length; i++) {
@@ -161,8 +140,8 @@ export default {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          "name":this.name,
-          "phone":this.phone,
+          "name":name,
+          "phone":phone,
         })
       })
           .then(result => result.json())
@@ -176,6 +155,7 @@ export default {
                 body: JSON.stringify({"items":values})
               }).then(result => result.json())
                   .then(result => {
+                    console.log(result)
                     for (let i = 0; i < keys.length; i++) {
                       const key = keys[i];
                       const value = values[i];
@@ -195,17 +175,17 @@ export default {
       });
     },
 
-    customSearch(){
+    customSearch(search){
 
-      fetch(`http://localhost:3000/search?keyword=${this.searchInput}`)
+      fetch(`http://localhost:3000/search?keyword=${search}`)
           .then(res => {
             return res.json()
           })
           .then(data => {
-            this.data = data
+            this.lessons = data
           })
           .catch(err => {
-            this.data = []
+            this.lessons = []
             console.log(`unable to get lessons: ${err}`)
           })
     },
@@ -285,14 +265,284 @@ export default {
     cartItemCount: function()
     {
       return this.cart.length;
-    },
-    isValid() {
-      return this.name.trim() !== '' && this.phone.trim() !== ''
     }
   },
 }
 </script>
 
 <style>
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,300);
 
+.card .card-image{
+  overflow: hidden;
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+  -ms-transform-style: preserve-3d;
+  -o-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
+.card .card-image img{
+  -webkit-transition: all 0.4s ease-in-out;
+  -moz-transition: all 0.4s ease-in-out;
+  -ms-transition: all 0.4s ease-in-out;
+  -o-transition: all 0.4s ease-in-out;
+  transition: all 0.4s ease-in-out;
+}
+
+.card .card-image:hover img{
+  -webkit-transform: scale(1.2) rotate(-7deg);
+  -moz-transform: scale(1.2) rotate(-7deg);
+  -ms-transform: scale(1.2) rotate(-7deg);
+  -o-transform: scale(1.2) rotate(-7deg);
+  transform: scale(1.2) rotate(-7deg);
+}
+
+.card{
+  font-family: 'Roboto', sans-serif;
+  border:none;
+  margin-top: 10px;
+  position: relative;
+  -webkit-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+  -moz-box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+  box-shadow: 4 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+
+.card .card-content {
+  padding: 10px;
+  background:#1A9AE1;
+  color:white;
+}
+
+.card .card-content .card-title, .card-reveal .card-title{
+  font-size: 24px;
+  font-weight: 200;
+}
+
+.card .card-reveal{
+  padding: 20px;
+  position: absolute;
+  background-color: #FFF;
+  width: 100%;
+  overflow-y: auto;
+  left:0;
+  bottom:0;
+  height: 100%;
+  z-index: 1;
+  display: none;
+}
+
+.card .card-reveal .card-title{
+  color: rgba(0, 0, 0, 0.71);
+  margin:10px;
+  font-size:2.2rem;
+}
+
+.card .card-reveal p{
+  color: rgba(0, 0, 0, 0.71);
+  margin:10px;
+  font-size:1.2rem;
+}
+
+.btn-custom{
+  background-color: transparent;
+  font-size:18px;
+
+}
+
+header {
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 1px 6px 0 rgba(214, 220, 239, 1);
+  top: 0px;
+  background-color: #fff;
+  position: sticky;
+  z-index: 40;
+  height: 100px;
+}
+.logo {
+  padding:5px 0px;
+}
+.logo a {
+  color: #3a76cb;
+  text-transform: capitalize;
+  color: #000000;
+  font-size: 35px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.mob-menu {
+  display: none;
+}
+.main-menu {
+  margin: 20px 0px;
+  float: right;
+}
+.main-menu ul.nav {
+  float: left;
+  margin-right: 20px;
+  list-style: none;
+  padding-left: 0px;
+  margin-bottom: 0px;
+  padding-top:10px;
+}
+.nav li:first-child {
+  margin-left: 0px;
+}
+.main-menu ul {  display: inline-block; }
+.main-menu ul li {
+  position: relative;
+  display: inline-block;
+  margin: 12px 20px;
+}
+.main-menu ul li a {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #3a76cb;
+  display: block;
+  text-decoration:none;
+}
+.main-menu ul.right-nav{
+  padding-left:0px;
+}
+.main-menu ul.right-nav li a {
+  width: 150px;
+  height: 45px;
+  border-radius: 4px;
+  background-color: #fff;
+  text-align: center;
+  color: #3a76cb;
+  border: solid 1px #3a76cb;
+  vertical-align: middle;
+  display: table-cell;
+}
+.main-menu ul.right-nav li:last-child {
+  margin-right: 0px;
+}
+.main-menu ul.right-nav li.active a {
+  background-color: #3a76cb;
+  color: #fff;
+}
+@media(max-width:1000px){
+  .logo {
+    display: inline-block;
+    width: 78%;
+    padding: 10px 10px 10px 0px;
+  }
+  .mob-menu {
+    display: none;
+    width: 20%;
+  }
+  .mob-menu span {
+    border: solid 2px #3a76cb;
+    display: block;
+    text-align: center;
+    border-radius: 4px;
+    padding: 2px 6px;
+    width: 50px;
+    color: #3a76cb;
+    font-size: 25px;
+    cursor: pointer;
+  }
+  .main-menu {
+    margin: 0px 0px 10px 0px;
+    float: left;
+    background-color: #f1f1f1;
+    width: 100%;
+    display: none;
+  }
+  .main-menu ul {
+    list-style: none;
+    padding-left: 0px;
+    margin-bottom: 0px;
+    width: 100%;
+  }
+  .main-menu ul.right-nav {
+    text-align: center;
+    margin-top: 6px;
+  }
+  ul.right-nav {
+    margin-bottom: 10px;
+  }
+  .main-menu {
+    margin: 0px 0px 10px 0px;
+    float: left;
+    background-color: #f1f1f1;
+    width: 100%;
+    display: none;
+  }
+  .main-menu ul li {
+    display: block;
+    width: 100%;
+    margin: 0px;
+  }
+  .nav li:first-child {
+    margin-left: 0px;
+  }
+  .main-menu ul li a {
+    padding: 10px 15px;
+    display: block;
+    border-bottom: solid 1px #e2e4e6;
+    text-align: center;
+  }
+  .main-menu ul.right-nav li {
+    margin-left: 0px;
+    margin-right: 30px;
+    display: inline-block;
+    width: 150px;
+  }
+  .main-menu ul.right-nav li a {
+    font-size: 18px !important;
+  }
+}
+#search_parent {
+  width: 300px;
+  height: 40px;
+  border: 1px solid gray;
+  margin: 50px auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 5px;
+}
+@media(max-width:768px){
+  #search_parent {
+    margin: 30px auto;
+  }
+  .text{
+    text-align: center;
+
+  }
+  .p-5
+  {
+    padding: 0;
+  }
+}
+
+#search_parent>* {
+  height: 97%;
+}
+
+#search_parent>input {
+  width: 250px;
+  outline: none;
+  border: none;
+  padding-left: 10px;
+  border-radius: 5px 0 0 5px;
+  font-size: 18px;
+}
+
+#search_parent>label {
+  width: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 25px;
+  cursor: pointer;
+}
+.wrapper:hover .box:not(:hover)  {
+  filter: blur(3px);
+  opacity: 0.5;
+}
 </style>
